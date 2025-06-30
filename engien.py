@@ -1,4 +1,5 @@
 import torch
+from utils import AverageMeter
 
 
 def train(model, dataloaders, criterion, optimizer, device, epoch, scheduler=None):
@@ -8,9 +9,9 @@ def train(model, dataloaders, criterion, optimizer, device, epoch, scheduler=Non
         scheduler.step()
 
     model.train()
+    loss_meter = AverageMeter()
+    acc_meter = AverageMeter()
 
-    running_loss = 0.0
-    running_corrects = 0
 
     # Iterate over data.
     for i, (inputs, labels) in enumerate(dataloaders):
@@ -26,20 +27,21 @@ def train(model, dataloaders, criterion, optimizer, device, epoch, scheduler=Non
 
         # statistics
         _, preds = torch.max(outputs, 1)
-        running_loss += loss.detach() * inputs.size(0)
-        running_corrects += torch.sum(preds == labels.data)
+        correct = (preds == labels).sum().item()
+        batch_size = labels.size(0)
 
-    epoch_loss = running_loss / len(dataloaders.dataset)
-    epoch_acc = running_corrects.float() / len(dataloaders.dataset)
-    print(f'Epoch: {epoch} train loss {epoch_loss:.3f} train acc {epoch_acc * 100.0:.3f}%')
+        loss_meter.update(loss.item(), batch_size)
+        acc_meter.update(correct / batch_size, batch_size)
 
-    return epoch_loss, epoch_acc
+    print(f'Epoch: {epoch} train loss {loss_meter.avg:.3f} train acc {acc_meter.avg * 100.0:.3f}%')
+
+    return loss_meter.avg, acc_meter.avg
 
 
 def val(model, dataloaders, device, epoch):
     model.eval()  # Set model to evaluate mode
 
-    running_corrects = 0
+    acc_meter = AverageMeter()
 
     for i, (inputs, labels) in enumerate(dataloaders):
         inputs = inputs.to(device)
@@ -50,9 +52,12 @@ def val(model, dataloaders, device, epoch):
 
         # statistics
         _, preds = torch.max(outputs, 1)
-        running_corrects += torch.sum(preds == labels.data)
 
-    epoch_acc = running_corrects.float() / len(dataloaders.dataset)
-    print(f'Epoch: {epoch} val acc {epoch_acc * 100.0:.3f}%')
+        correct = (preds == labels).sum().item()
+        batch_size = labels.size(0)
 
-    return epoch_acc
+        acc_meter.update(correct / batch_size, batch_size)
+
+    print(f'Epoch: {epoch} val acc {acc_meter.avg * 100.0:.3f}%')
+
+    return acc_meter.avg
