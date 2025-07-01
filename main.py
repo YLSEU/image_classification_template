@@ -93,7 +93,7 @@ if __name__ == '__main__':
 			epoch=epoch
 		)
 
-		train_losses.append(train_loss.cpu().numpy())
+		train_losses.append(train_loss)
 		train_acces.append(train_acc)
 		val_acces.append(val_acc)
 

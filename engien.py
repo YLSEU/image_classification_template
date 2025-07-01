@@ -2,15 +2,15 @@ import torch
 from utils import AverageMeter
 
 
-def train(model, dataloaders, criterion, optimizer, device, epoch, scheduler=None):
+def train(model, dataloaders, criterion, optimizer, device, epoch, scheduler=None, print_feq=50):
     print("-" * 10)
 
     if scheduler is not None:
         scheduler.step()
 
     model.train()
-    loss_meter = AverageMeter()
-    acc_meter = AverageMeter()
+    loss_meter = AverageMeter(name='train_loss')
+    acc_meter = AverageMeter(name='train_acc')
 
 
     # Iterate over data.
@@ -33,7 +33,8 @@ def train(model, dataloaders, criterion, optimizer, device, epoch, scheduler=Non
         loss_meter.update(loss.item(), batch_size)
         acc_meter.update(correct / batch_size, batch_size)
 
-    print(f'Epoch: {epoch} train loss {loss_meter.avg:.3f} train acc {acc_meter.avg * 100.0:.3f}%')
+        if i % print_feq == 0:
+            print(f'Epoch: {epoch} train loss {loss_meter.avg:.3f} train acc {acc_meter.avg * 100.0:.3f}%')
 
     return loss_meter.avg, acc_meter.avg
 
@@ -41,7 +42,7 @@ def train(model, dataloaders, criterion, optimizer, device, epoch, scheduler=Non
 def val(model, dataloaders, device, epoch):
     model.eval()  # Set model to evaluate mode
 
-    acc_meter = AverageMeter()
+    acc_meter = AverageMeter(name='val_acc')
 
     for i, (inputs, labels) in enumerate(dataloaders):
         inputs = inputs.to(device)

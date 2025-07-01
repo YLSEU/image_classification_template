@@ -11,7 +11,7 @@ def save_to_csv(train_losses, train_acces, val_acces, save_dir):
 		}
 
 	df = pd.DataFrame(dict([(k, pd.Series(v)) for k, v in PlotData.items()]))
-	df.to_csv(os.path.join(save_dir, 'res.csv'), index=False)
+	df.to_csv(os.path.join(save_dir, 'res.csv'), index=True)
 
 
 def plot_result():
