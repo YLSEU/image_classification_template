@@ -1,11 +1,10 @@
-import os
 import torch
 import torch.nn as nn
 import torch.optim as optim
-import torchvision.datasets as datasets
+from datasets.tiny_imagenet import get_tiny_imagenet
 import torchvision.models as models
-import torchvision.transforms as transforms
 import argparse
+
 
 from engien import train, val
 from utils import save_to_csv
@@ -33,46 +32,12 @@ def get_args():
 if __name__ == '__main__':
 	args = get_args()
 
-	test_batch_size = 256
-
 	# ================================= dataset =============================================
 	if args.dataset == 'tiny_imagenet':
-		dataset_dir = os.path.join(args.data_dir, args.dataset)
-		train_dir = os.path.join(dataset_dir, 'train')
-		val_dir = os.path.join(dataset_dir, 'val', 'images')
-
-		print('Preparing dataset ...')
-		norm = transforms.Normalize(mean=[0.485, 0.456, 0.406],  std=[0.229, 0.224, 0.225])
-
-		train_trans = [
-			transforms.RandomHorizontalFlip(),
-			transforms.RandomResizedCrop(224),
-			transforms.ToTensor(),
-		]
-
-		val_trans = [
-			transforms.Resize(256),
-			transforms.CenterCrop(224),
-			transforms.ToTensor(),
-			norm
-		]
-
-		train_data = datasets.ImageFolder(train_dir,
-										 transform=transforms.Compose(train_trans + [norm]))
-
-		val_data = datasets.ImageFolder(val_dir,
-										transform=transforms.Compose(val_trans))
-
-		print('Preparing data loaders ...')
-		train_data_loader = torch.utils.data.DataLoader(train_data,
-														batch_size=args.bs,
-														shuffle=True)
-
-		val_data_loader = torch.utils.data.DataLoader(val_data,
-														batch_size=test_batch_size,
-														shuffle=False)
-		dataloaders = {"train": train_data_loader,
-					   "val": val_data_loader}
+		train_dataloader, val_dataloader = get_tiny_imagenet(data_dir=args.data_dir,
+		                                dataset=args.dataset,
+		                                bs=args.bs,
+		                                img_size=args.img_size)
 	else:
 		raise ValueError("invalid dataset name")
 
@@ -103,7 +68,7 @@ if __name__ == '__main__':
 	for epoch in range(args.epochs):
 		train_loss, train_acc = train(
 			model=model_ft,
-			dataloaders=dataloaders["train"],
+			dataloaders=train_dataloader,
 			criterion=criterion,
 			optimizer=optimizer_ft,
 			device=args.device,
@@ -113,7 +78,7 @@ if __name__ == '__main__':
 
 		val_acc = val(
 			model=model_ft,
-			dataloaders=dataloaders["val"],
+			dataloaders=val_dataloader,
 			device=args.device,
 			epoch=epoch
 		)

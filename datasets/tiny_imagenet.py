@@ -70,6 +70,44 @@ def prepare_imagenet(data_dir, dataset, batch_size, test_batch_size):
 	return train_data_loader, val_data_loader, train_data, val_data
 
 
+def get_tiny_imagenet(data_dir, dataset, bs, img_size):
+	dataset_dir = os.path.join(data_dir, dataset)
+	train_dir = os.path.join(dataset_dir, 'train')
+	val_dir = os.path.join(dataset_dir, 'val', 'images')
+
+	print('Preparing dataset ...')
+	norm = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+
+	train_trans = [
+		transforms.RandomHorizontalFlip(),
+		transforms.RandomResizedCrop(img_size),
+		transforms.ToTensor(),
+	]
+
+	val_trans = [
+		transforms.CenterCrop(img_size),
+		transforms.ToTensor(),
+		norm
+	]
+
+	train_data = datasets.ImageFolder(train_dir,
+	                                  transform=transforms.Compose(train_trans + [norm]))
+
+	val_data = datasets.ImageFolder(val_dir,
+	                                transform=transforms.Compose(val_trans))
+
+	print('Preparing data loaders ...')
+	train_data_loader = torch.utils.data.DataLoader(train_data,
+	                                                batch_size=bs,
+	                                                shuffle=True)
+
+	val_data_loader = torch.utils.data.DataLoader(val_data,
+	                                              batch_size=bs,
+	                                              shuffle=False)
+
+	return train_data_loader, val_data_loader
+
+
 if __name__ == '__main__':
 	# create_val_img_folder(data_dir='/media/xdl/lxd/datasets', dataset='tiny_imagenet')
 	train_data_loader, val_data_loader, train_data, val_data = prepare_imagenet(data_dir='/media/xdl/lxd/datasets',
