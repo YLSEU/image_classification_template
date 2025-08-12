@@ -41,3 +41,40 @@ class AverageMeter(object):
         fmtstr = '{name} {val' + self.fmt + '} ({avg' + self.fmt + '})'
         return fmtstr.format(**self.__dict__)
 
+
+if __name__ == '__main__':
+    ################### PRINT COLOR CLASS ############################
+    class bcolors:
+        HEADER = '\033[95m'
+        OKBLUE = '\033[94m'
+        OKGREEN = '\033[92m'
+        WARNING = '\033[93m'
+        FAIL = '\033[91m'
+        ENDC = '\033[0m'
+        BOLD = '\033[1m'
+        UNDERLINE = '\033[4m'
+
+    bc = bcolors
+    print(bc.HEADER + 'Setting DataLoader... ' + bc.ENDC)
+    print(bc.OKBLUE + 'Setting DataLoader... ' + bc.ENDC)
+    print(bc.OKGREEN + 'Setting DataLoader... ' + bc.ENDC)
+    print(bc.WARNING + 'Setting DataLoader... ' + bc.ENDC)
+    print(bc.BOLD + bc.WARNING + 'Starting Jigsaw Network Training!\n' + bc.ENDC + bc.ENDC)
+
+
+    ################## WRITE TO CSV FILE #####################
+    import csv
+    
+    class CSV_Writer():
+        def __init__(self, save_path, columns):
+            self.save_path = save_path
+            self.columns   = columns
+
+            with open(self.save_path, "a") as csv_file:
+                writer = csv.writer(csv_file, delimiter=",")
+                writer.writerow(self.columns)
+
+        def log(self, inputs):
+            with open(self.save_path, "a") as csv_file:
+                writer = csv.writer(csv_file, delimiter=',')
+                writer.writerow(inputs)
